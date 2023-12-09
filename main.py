@@ -12,7 +12,9 @@ import time
 # sensores = [8, 12, 16, 22, 36]  # Pines GPIO para configurar los sensores: ventana sala, ventana habitación, puerta principal y salida, sensor de gas, incendio 
 alarma = 3  # Pin GPIO para configurar alarma como salida
 interruptor = 40  # Pin GPIO para el interruptor para encender y apagar el sistema
-mess = "Alarma activada"
+mess = ""
+estado_previo = 0
+estado_actual = 0
 
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BOARD)
@@ -24,10 +26,15 @@ GPIO.setup(interruptor, GPIO.IN)
 
 while True:
     # Leer el estado de la interrupción
-    estado_interruptor = GPIO.INPUT(interruptor)
+    mess = ""
+    estado_previo = estado_actual
+    
+    estado_interruptor = GPIO.input(interruptor)
 
     if estado_interruptor == GPIO.HIGH:
-        print("Sistema activado")
+        estado_actual = 1
+        
+        #print("Sistema activado")
 
         s_sala = sensorSala()
         s_habitacion = sensorHabitacion()
@@ -36,40 +43,69 @@ while True:
         s_incendio = sensorIncendio()
 
         if s_sala == GPIO.HIGH:
-            GPIO.output(alarma, GPIO.HIGH)
-            mess = "Sensor sala activado - Alarma"
-            warning(mess)
-            time.sleep(3)
-            GPIO.output(alarma, GPIO.LOW)
+            print ("Sensor sala activado")
+            #GPIO.output(alarma, GPIO.HIGH)
+            mess = f"{mess} sala,"
+            #warning(mess)
+            #time.sleep(3)
+            #GPIO.output(alarma, GPIO.LOW)
 
         if s_habitacion == GPIO.HIGH:
-            GPIO.output(alarma, GPIO.HIGH)
-            mess = "Sensor habitación activado - Alarma"
-            time.sleep(3)
-            GPIO.output(alarma, GPIO.LOW)
+            print ("Sensor habitación activado")
+            #GPIO.output(alarma, GPIO.HIGH)
+            mess = f"{mess} habitación,"
+            #warning(mess)
+            #time.sleep(3)
+            #GPIO.output(alarma, GPIO.LOW)
 
         if s_puerta == GPIO.HIGH:
-            GPIO.output(alarma, GPIO.HIGH)
-            mess = "Sensor puerta activado - Alarma"
-            time.sleep(3)
-            GPIO.output(alarma, GPIO.LOW) 
+            print ("Sensor puerta activado")
+            #GPIO.output(alarma, GPIO.HIGH)
+            mess = f"{mess} puerta,"
+            #warning(mess)
+            #time.sleep(3)
+            #GPIO.output(alarma, GPIO.LOW) 
         
         if s_gas == GPIO.HIGH:
-            GPIO.output(alarma, GPIO.HIGH)
-            mess = "Sensor gas activado - Alarma"
-            time.sleep(3)
-            GPIO.output(alarma, GPIO.LOW) 
+            print ("Sensor gas activado")
+            #GPIO.output(alarma, GPIO.HIGH)
+            mess = f"{mess} gas,"
+            #warning(mess)
+            #time.sleep(3)
+            #GPIO.output(alarma, GPIO.LOW) 
 
         if s_incendio == GPIO.HIGH:
+            print ("Sensor incendio activado")
+            #GPIO.output(alarma, GPIO.HIGH)
+            mess = f"{mess} incendio,"
+            #warning(mess)
+            #time.sleep(3)
+            #GPIO.output(alarma, GPIO.LOW)
+
+        if mess: # Si mess tiene algún mensaje (hay algún sensor activo)
             GPIO.output(alarma, GPIO.HIGH)
-            mess = "Sensor incendio activado - Alarma"
+            mess = f"Sensor(es) {mess} activado(s) - Alarma"
+            warning(mess) 
             time.sleep(3)
-            GPIO.output(alarma, GPIO.LOW) 
+            GPIO.output(alarma, GPIO.LOW)
+           
             
         else:
             GPIO.output(alarma, GPIO.LOW)
 
     else:
-        print("Sistema desactivado")
+        #print("Sistema desactivado")
+        estado_actual = 0
+        mess = ""
+        
+    if estado_actual != estado_previo:
+        if estado_actual == 1:
+            print("Sistema activado")
+            mess = "Sistema de seguridad activado"
+            warning(mess)
+        else:
+            print("Sistema desactivado")
+            mess = "Sistema de seguridad desactivado"
+            warning(mess)
 
     time.sleep(1)
